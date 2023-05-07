@@ -1,5 +1,7 @@
 package model.entities;
 
+import model.exceptions.DomainException;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -13,7 +15,8 @@ public class Reservation {
 
     private static DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    public Reservation(Integer roomNumber, LocalDate checkin, LocalDate checkout) {
+    public Reservation(Integer roomNumber, LocalDate checkin, LocalDate checkout) throws DomainException {
+        validation(checkin, checkout);
         this.roomNumber = roomNumber;
         this.checkin = checkin;
         this.checkout = checkout;
@@ -42,17 +45,23 @@ public class Reservation {
         return duration;
     }
 
-    public String updateDates(LocalDate checkin, LocalDate checkout){
-        LocalDate now = LocalDate.now();
-        if (checkin.isBefore(now) || checkout.isBefore(now)){
-            return "Error in reservation: Reservation dates for update must be future dates";
-        }
-        if (!checkout.isAfter(checkin)){
-            return "Error in reservation: Check-out date must be after check-in date!";
-        }
+    public void updateDates(LocalDate checkin, LocalDate checkout) throws DomainException{
+        validation(checkin, checkout);
         this.checkin = checkin;
         this.checkout = checkout;
-        return null;
+
+    }
+
+    public void validation(LocalDate checkin, LocalDate checkout) throws DomainException{
+        LocalDate now = LocalDate.now();
+        if (checkin.isBefore(now) || checkout.isBefore(now)){
+            throw new DomainException(
+                    "Error in reservation: Reservation dates for update must be future dates");
+        }
+        if (!checkout.isAfter(checkin)){
+            throw new DomainException(
+                    "Error in reservation: Check-out date must be after check-in date!");
+        }
     }
 
     @Override
